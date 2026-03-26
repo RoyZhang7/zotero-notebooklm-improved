@@ -1,0 +1,5 @@
+This plugin allows a Zotero user to select one or more of their [Zotero](zotero.org) articles from their collection and automatically create a new [Google NotebookLM](notebooklm.google.com) from the PDFs from their collection.
+
+Currently, performing this task is egregiously time-consuming, since the storage of PDFs in Zotero is in indivdual by-key folder names. However, users of Zotero and NotebookLM will find that creating a new notebook for a new subollection of papers is a common, almost foundational, workflow task.
+
+NotebookLM offers an API to Enterprise users, but for the many users without such access, the path is not so straightforward. In a perfect conceptualization, our plugin should deliver an interface in Zotero for selecting articles, and then automagically create a new notebook in NotebookLM. In order to do this in practice, we need to employ some browser-magic with a Chrome plugin...
