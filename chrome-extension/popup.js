@@ -166,32 +166,31 @@ async function doImport() {
     }
   }
 
-  // Phase 2: Send ALL files to content script in one batch
+  // Phase 2: Send ALL files to content script in one batch, then close
+  // the popup so the page regains focus.  NotebookLM's Angular lifecycle
+  // is paused while the extension popup holds focus — closing the popup
+  // lets Angular create the file input immediately.
   progressText.textContent = `Uploading ${files.length} files to NotebookLM...`;
   progressFill.style.width = "60%";
 
   try {
-    const result = await chrome.tabs.sendMessage(tab.id, {
+    // Fire the message — don't await the response.  The content script
+    // keeps running after the popup closes.
+    chrome.tabs.sendMessage(tab.id, {
       action: "uploadBatch",
       files: files,
     });
 
-    if (!result.success) {
-      throw new Error(result.error || "Upload failed");
-    }
-
-    progressFill.style.width = "100%";
-    progressText.textContent = `Done! ${files.length} source${files.length !== 1 ? "s" : ""} uploaded to NotebookLM.`;
-    btn.textContent = "Done";
-
-    // Clear staged items from Zotero
+    // Clear staged items from Zotero optimistically
     try {
       await fetch(`${ZOTERO_BASE}/clear`, { method: "DELETE" });
     } catch (_) {
       // Non-critical
     }
 
-    setTimeout(loadPending, 2000);
+    // Close the popup so NotebookLM regains focus and Angular can run.
+    // A small delay lets the sendMessage dispatch first.
+    setTimeout(() => window.close(), 200);
   } catch (e) {
     progressText.textContent = `Error uploading to NotebookLM: ${e.message}`;
     btn.disabled = false;
