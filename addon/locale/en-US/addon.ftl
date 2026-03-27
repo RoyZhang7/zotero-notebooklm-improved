@@ -1,0 +1,3 @@
+startup-begin = Zotero NotebookLM is loading
+startup-finish = Zotero NotebookLM is ready
+menuitem-export-label = Export to NotebookLM...

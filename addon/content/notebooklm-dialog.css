@@ -1,0 +1,157 @@
+window {
+  padding: 10px;
+  background-color: -moz-Dialog;
+  color: -moz-DialogText;
+}
+
+.pane-header {
+  font-weight: bold;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  color: -moz-DialogText;
+}
+
+#notebooklm-collections-pane {
+  min-width: 200px;
+  max-width: 350px;
+  border-right: 1px solid ThreeDShadow;
+  overflow-y: auto;
+}
+
+.collection-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px;
+}
+
+.collection-item {
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  line-height: 1.6;
+  color: -moz-DialogText;
+}
+
+.collection-item:hover {
+  background-color: -moz-MenuHover;
+  color: -moz-MenuHoverText;
+}
+
+.collection-item.selected {
+  background-color: Highlight;
+  color: HighlightText;
+}
+
+.collection-item .item-count {
+  opacity: 0.6;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.collection-item.selected .item-count {
+  opacity: 0.8;
+}
+
+#notebooklm-search-bar {
+  padding: 6px 8px;
+  border-bottom: 1px solid ThreeDShadow;
+}
+
+#notebooklm-search-bar label {
+  margin-right: 6px;
+  color: -moz-DialogText;
+}
+
+#notebooklm-search-input {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid ThreeDShadow;
+  border-radius: 3px;
+  font-size: 13px;
+  background-color: Field;
+  color: FieldText;
+}
+
+.item-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-bottom: 1px solid ThreeDLightShadow;
+  font-size: 13px;
+  gap: 8px;
+  color: -moz-DialogText;
+}
+
+.item-row:hover {
+  background-color: -moz-MenuHover;
+  color: -moz-MenuHoverText;
+}
+
+.item-row.disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.item-row input[type="checkbox"] {
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.item-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-creators {
+  flex: 0 0 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.item-year {
+  flex: 0 0 50px;
+  text-align: right;
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.item-type-badge {
+  flex: 0 0 40px;
+  text-align: center;
+  font-size: 10px;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+#notebooklm-bottom-bar {
+  padding: 8px;
+  border-top: 1px solid ThreeDShadow;
+  gap: 8px;
+}
+
+#notebooklm-selected-count {
+  font-size: 13px;
+  color: -moz-DialogText;
+}
+
+.empty-message {
+  padding: 20px;
+  text-align: center;
+  opacity: 0.6;
+  font-style: italic;
+}

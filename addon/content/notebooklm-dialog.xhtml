@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://zoteroNotebookLM/content/notebooklm-dialog.css" type="text/css"?>
+
+<window
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  xmlns:html="http://www.w3.org/1999/xhtml"
+  title="Export to NotebookLM"
+  width="800"
+  height="600"
+>
+  <vbox flex="1">
+    <!-- Main content area: two-pane layout -->
+    <hbox flex="1">
+      <!-- Left pane: Collection tree -->
+      <vbox id="notebooklm-collections-pane" width="260">
+        <label value="Collections" class="pane-header" />
+        <html:div id="notebooklm-collection-list" class="collection-list" />
+      </vbox>
+
+      <!-- Splitter -->
+      <splitter />
+
+      <!-- Right pane: Search + Items -->
+      <vbox flex="1">
+        <!-- Search bar -->
+        <hbox id="notebooklm-search-bar" align="center">
+          <label value="Search:" />
+          <html:input
+            id="notebooklm-search-input"
+            type="text"
+            placeholder="Filter by title, author, year..."
+            style="flex: 1"
+          />
+        </hbox>
+
+        <!-- Item list -->
+        <html:div id="notebooklm-item-list" class="item-list" flex="1" />
+      </vbox>
+    </hbox>
+
+    <!-- Bottom bar -->
+    <hbox id="notebooklm-bottom-bar" align="center">
+      <label id="notebooklm-selected-count" value="0 items selected" flex="1" />
+      <button
+        id="notebooklm-export-btn"
+        label="Export to NotebookLM"
+        disabled="true"
+      />
+      <button
+        id="notebooklm-cancel-btn"
+        label="Cancel"
+      />
+    </hbox>
+  </vbox>
+</window>
