@@ -8,7 +8,7 @@ I use [Zotero](https://www.zotero.org/) as my source of truth for **all** my sci
 
 Unfortunately, there's no native integration between Zotero and NotebookLM, and--what's worse--Zotero's article storage on a local file system is an utter pain to navigate, select from, and use from the NotebookLM interface's file dropzone. So, I built this plugin to automate the workflow.
 
-It's a bit of a kludge: NotebookLM only offers an API to business customers as of this time, and so we have to manipulate the web interface using a browser extension. This arrangement likely means that the overall setup is a bit brittle! But, as I *need* to use it many times a week (what else am I going to listen to when I am huffing up [Puʻu Pia](https://www.google.com/maps/place/Summit+of+Pu%CA%BBu+Pia+Trail/)?), I am likely to invest the time to try and keep this project maintained---and I'd welcome requests and contributions.
+It's a bit of a kludge: NotebookLM only offers an API to business customers as of this time, and so we have to manipulate the web interface using a browser extension. This arrangement likely means that the overall setup is a bit brittle! But, as I *need* to use it many times a week (what else am I going to listen to when I am huffing up [Puʻu Pia](https://maps.app.goo.gl/56yaE2tURJyo24Ma6)?), I am likely to invest the time to try and keep this project maintained---and I'd welcome requests and contributions.
 
 <p align="center">🌴 🌴 🌴</p>
 
