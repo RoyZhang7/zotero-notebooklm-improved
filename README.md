@@ -1,10 +1,24 @@
 # Zotero → NotebookLM
 
-A Zotero 7 plugin and Chrome extension that lets you select articles from your Zotero library and import their PDFs directly into Google NotebookLM — no manual file wrangling required.
+I use [Zotero](https://www.zotero.org/) as my source of truth for **all** my scientific literature, and whenever I look into a new topic, it starts with a new collection of the latest papers in Zotero. My favorite workflow: 
+- take those new papers-->
+- dump them into a new [NotebookLM](https://notebooklm.google.com/) notebook-->
+- generate a audio "podcast"-->
+- and off to my favorite jogging trail with headphones!
+
+Unfortunately, there's no native integration between Zotero and NotebookLM, and--what's worse--Zotero's article storage on a local file system is an utter pain to navigate, select from, and use from the NotebookLM interface's file dropzone. So, I built this plugin to automate the workflow.
+
+It's a bit of a kludge: NotebookLM only offers an API to business customers as of this time, and so we have to manipulate the web interface using a browser extension. This arrangement likely means that the overall setup is a bit brittle! But, as I *need* to use it many times a week (what else am I going to listen to when I am huffing up [Puʻu Pia](https://www.google.com/maps/place/Summit+of+Pu%CA%BBu+Pia+Trail/)?), I am likely to invest the time to try and keep this project maintained---and I'd welcome requests and contributions.
+
+<p align="center">🌴 🌴 🌴</p>
 
 <p align="center">
   <img src="public/zotero-notebooklm.png" alt="Chrome extension popup showing 8 Zotero sources staged for import to NotebookLM" width="400">
 </p>
+
+## About
+
+A Zotero 7 plugin and Chrome extension that lets you select articles from your Zotero library and import their PDFs directly into Google NotebookLM — no manual file wrangling required.
 
 ## Why?
 
