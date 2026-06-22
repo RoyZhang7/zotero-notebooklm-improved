@@ -17,7 +17,7 @@ async function loadPending() {
   const instructions = document.getElementById("instructions");
 
   try {
-    const res = await fetch(`${ZOTERO_BASE}/pending`);
+    const res = await fetch(`${ZOTERO_BASE}/pending`, { headers: { "X-Zotero-Connector-API-Version": "3" } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -147,7 +147,7 @@ async function doImport() {
     try {
       const fileRes = await fetch(`${ZOTERO_BASE}/file`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Zotero-Connector-API-Version": "3" },
         body: JSON.stringify({ attachmentId: item.attachmentId }),
       });
       if (!fileRes.ok) throw new Error(`Failed to fetch ${item.fileName}`);
@@ -183,7 +183,7 @@ async function doImport() {
 
     // Clear staged items from Zotero optimistically
     try {
-      await fetch(`${ZOTERO_BASE}/clear`, { method: "DELETE" });
+      await fetch(`${ZOTERO_BASE}/clear`, { method: "DELETE", headers: { "X-Zotero-Connector-API-Version": "3" } });
     } catch (_) {
       // Non-critical
     }
