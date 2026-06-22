@@ -1,3 +1,37 @@
+# Zotero → NotebookLM — Improved Fork
+
+This is an improved fork of [peterdresslar/zotero-notebooklm](https://github.com/peterdresslar/zotero-notebooklm). It gets the project running on **Zotero 9**, makes it practical to pick a couple of papers out of a large staged set, and reworks the NotebookLM upload so it stops failing silently. The original author's README is preserved below the divider.
+
+## What's improved in this fork
+
+**Zotero 9 compatibility.** The upstream plugin was written for Zotero 7 and wouldn't install or run on Zotero 9. Three separate incompatibilities are fixed:
+- **Install gate** — the manifest's `strict_max_version` was `8.*`, so Zotero 9 refused to install the plugin. Raised to `9.*`.
+- **Startup crash** — the pinned `zotero-plugin-toolkit` called the removed `ChromeUtils.import()` and threw on load. Updated to `^5.1.4`.
+- **Server dropping browser requests** — Zotero's local HTTP server cancels requests coming from a browser User-Agent unless they carry a connector header, which showed up as `net::ERR_EMPTY_RESPONSE`. The Chrome extension now sends the required header on every request to Zotero.
+
+**Better source selection (both UIs).** The Chrome popup and the Zotero export dialog now:
+- **Default to nothing selected** instead of everything, so you opt papers *in* rather than unchecking a long list.
+- Have a **live search box** that filters the visible items by title or author/creators.
+- Have a **Select all / Deselect all** toggle that operates only on the **currently filtered** items (and whose label reflects the current state) — e.g. search `caladan`, hit *Select all*, clear the search, and only that paper stays checked.
+
+**More reliable NotebookLM upload.** NotebookLM blocks script-synthesized clicks and drops (it checks `event.isTrusted`), which made the old fully-automated upload hang or fail silently. The flow is now **"you click, we inject"**:
+- The extension stages your files and opens NotebookLM's add-sources dialog.
+- It **highlights the "Upload files" button** and shows an on-page prompt.
+- **You click "Upload files" once** — that trusted click triggers NotebookLM's picker, which the extension intercepts and fills with your staged files (no OS file dialog appears).
+- **On-page toasts** report progress, success, or the actual error, so an import never fails without telling you why.
+
+## Updated usage (what's different from the original)
+
+The Zotero staging step is unchanged, but note these differences when importing:
+
+1. Both the Zotero dialog and the Chrome popup now open with **no items selected** — use the search box and **Select all** to choose sources quickly.
+2. In Chrome, click the extension icon and hit **Import to NotebookLM** as before.
+3. When prompted, **click the highlighted "Upload files" button inside NotebookLM yourself** to finish the import. This one manual click is required because NotebookLM rejects automated clicks; watch the on-page toast for the result.
+
+> Note on staging: the popup currently clears your Zotero staging optimistically when you press Import. If you abandon the import without clicking "Upload files", you'll need to re-stage from Zotero.
+
+---
+
 # Zotero → NotebookLM
 
 I use [Zotero](https://www.zotero.org/) as my source of truth for **all** my scientific literature, and whenever I look into a new topic, it starts with a new collection of the latest papers in Zotero. My favorite workflow: 
