@@ -2,11 +2,18 @@ const ZOTERO_BASE = "http://127.0.0.1:23119/notebooklm";
 
 let stagedItems = [];
 let selectedIds = new Set();
+let filterText = "";
 
 document.addEventListener("DOMContentLoaded", () => {
   loadPending();
   document.getElementById("refresh-btn").addEventListener("click", loadPending);
   document.getElementById("import-btn").addEventListener("click", doImport);
+  document.getElementById("select-all-btn").addEventListener("click", toggleSelectAll);
+  document.getElementById("search-box").addEventListener("input", (e) => {
+    filterText = e.target.value;
+    renderItems();
+    updateSelectAllBtn();
+  });
 });
 
 async function loadPending() {
@@ -25,19 +32,24 @@ async function loadPending() {
     statusText.textContent = `Zotero connected — ${data.count} source${data.count !== 1 ? "s" : ""} staged`;
 
     stagedItems = data.items || [];
-    selectedIds = new Set(stagedItems.map((i) => i.attachmentId));
+    selectedIds = new Set();
+
+    const listControls = document.getElementById("list-controls");
 
     if (stagedItems.length === 0) {
       emptyState.innerHTML =
         "<p><b>No sources staged</b></p><p>Use the Zotero plugin to select and export sources first.</p>";
       emptyState.style.display = "";
+      listControls.style.display = "none";
       itemList.style.display = "none";
       instructions.style.display = "none";
     } else {
       emptyState.style.display = "none";
+      listControls.style.display = "flex";
       itemList.style.display = "";
       instructions.style.display = "";
       renderItems();
+      updateSelectAllBtn();
     }
     updateImportBtn();
   } catch (e) {
@@ -46,17 +58,39 @@ async function loadPending() {
     emptyState.innerHTML =
       "<p><b>Zotero not detected</b></p><p>Make sure Zotero is open and the NotebookLM plugin is installed.</p>";
     emptyState.style.display = "";
+    document.getElementById("list-controls").style.display = "none";
     itemList.style.display = "none";
     instructions.style.display = "none";
     updateImportBtn();
   }
 }
 
+function visibleItems() {
+  const q = filterText.trim().toLowerCase();
+  if (!q) return stagedItems;
+  return stagedItems.filter((item) => {
+    const title = (item.title || "").toLowerCase();
+    const creators = (item.creators || "").toLowerCase();
+    return title.includes(q) || creators.includes(q);
+  });
+}
+
 function renderItems() {
   const list = document.getElementById("item-list");
   list.innerHTML = "";
 
-  for (const item of stagedItems) {
+  const items = visibleItems();
+  if (items.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "item-row";
+    empty.style.color = "#5f6368";
+    empty.style.justifyContent = "center";
+    empty.textContent = "No matches.";
+    list.appendChild(empty);
+    return;
+  }
+
+  for (const item of items) {
     const row = document.createElement("div");
     row.className = "item-row";
 
@@ -87,11 +121,36 @@ function renderItems() {
         cb.checked = true;
       }
       updateImportBtn();
+      updateSelectAllBtn();
     });
     row.style.cursor = "pointer";
 
     list.appendChild(row);
   }
+}
+
+function updateSelectAllBtn() {
+  const btn = document.getElementById("select-all-btn");
+  const items = visibleItems();
+  const allSelected =
+    items.length > 0 && items.every((i) => selectedIds.has(i.attachmentId));
+  btn.textContent = allSelected ? "Deselect all" : "Select all";
+}
+
+function toggleSelectAll() {
+  const items = visibleItems();
+  const allSelected =
+    items.length > 0 && items.every((i) => selectedIds.has(i.attachmentId));
+  for (const item of items) {
+    if (allSelected) {
+      selectedIds.delete(item.attachmentId);
+    } else {
+      selectedIds.add(item.attachmentId);
+    }
+  }
+  renderItems();
+  updateImportBtn();
+  updateSelectAllBtn();
 }
 
 function updateImportBtn() {
@@ -212,3 +271,4 @@ function esc(s) {
   d.textContent = s || "";
   return d.innerHTML;
 }
+

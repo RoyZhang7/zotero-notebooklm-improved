@@ -108,9 +108,14 @@ async function initDialog(win: Window) {
       }
       state.selectedItemIds.clear();
       renderItemList(state);
+      updateSelectAllBtn(state);
       updateBottomBar(state);
     }, 300) as unknown as number;
   });
+
+  // Wire up select-all button
+  const selectAllBtn = doc.getElementById("notebooklm-select-all-btn")!;
+  selectAllBtn.addEventListener("command", () => selectAllVisible(state));
 
   // Wire up export button
   const exportBtn = doc.getElementById("notebooklm-export-btn")!;
@@ -184,6 +189,7 @@ async function selectCollection(state: DialogState, collectionId: number) {
 
   state.items = await getItemsForCollection(collectionId);
   renderItemList(state);
+  updateSelectAllBtn(state);
   updateBottomBar(state);
 }
 
@@ -304,7 +310,42 @@ function toggleItem(
     state.selectedItemIds.add(itemId);
     checkbox.checked = true;
   }
+  updateSelectAllBtn(state);
   updateBottomBar(state);
+}
+
+function selectableVisibleItems(state: DialogState): ItemRow[] {
+  return state.items.filter((item) => item.hasValidAttachment);
+}
+
+function selectAllVisible(state: DialogState) {
+  const selectable = selectableVisibleItems(state);
+  const allSelected =
+    selectable.length > 0 &&
+    selectable.every((item) => state.selectedItemIds.has(item.id));
+
+  for (const item of selectable) {
+    if (allSelected) {
+      state.selectedItemIds.delete(item.id);
+    } else {
+      state.selectedItemIds.add(item.id);
+    }
+  }
+
+  renderItemList(state);
+  updateSelectAllBtn(state);
+  updateBottomBar(state);
+}
+
+function updateSelectAllBtn(state: DialogState) {
+  const btn = state.doc.getElementById("notebooklm-select-all-btn");
+  if (!btn) return;
+  const selectable = selectableVisibleItems(state);
+  const allSelected =
+    selectable.length > 0 &&
+    selectable.every((item) => state.selectedItemIds.has(item.id));
+  btn.setAttribute("label", allSelected ? "Deselect all" : "Select all");
+  btn.setAttribute("disabled", String(selectable.length === 0));
 }
 
 function getTypeLabel(contentType: string): string {

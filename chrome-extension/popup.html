@@ -40,6 +40,30 @@
 
     .content { padding: 12px 16px; }
 
+    #list-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    #search-box {
+      flex: 1;
+      min-width: 0;
+      padding: 6px 10px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    #search-box:focus {
+      outline: none;
+      border-color: #1a73e8;
+    }
+    #select-all-btn {
+      white-space: nowrap;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
     .item-list {
       max-height: 300px;
       overflow-y: auto;
@@ -162,6 +186,10 @@
   <div id="content" class="content">
     <div id="empty-state" class="empty-state">
       <p>Checking for staged sources...</p>
+    </div>
+    <div id="list-controls" style="display:none">
+      <input id="search-box" type="text" placeholder="Search title or author...">
+      <button id="select-all-btn">Select all</button>
     </div>
     <div id="item-list" class="item-list" style="display:none"></div>
   </div>

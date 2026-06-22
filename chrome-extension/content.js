@@ -3,9 +3,17 @@
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === "uploadBatch") {
+    const count = (msg.files && msg.files.length) || 0;
+    showToast(`Importing ${count} source${count === 1 ? "" : "s"} into NotebookLM…`, "progress");
     uploadBatch(msg.files)
-      .then(() => sendResponse({ success: true }))
-      .catch((e) => sendResponse({ success: false, error: e.message }));
+      .then(() => {
+        showToast(`Imported ${count} source${count === 1 ? "" : "s"} into NotebookLM.`, "success");
+        sendResponse({ success: true });
+      })
+      .catch((e) => {
+        showToast(`Import failed: ${e.message}`, "error");
+        sendResponse({ success: false, error: e.message });
+      });
     return true;
   }
 
@@ -20,18 +28,28 @@ async function uploadBatch(files) {
     throw new Error("No files to upload");
   }
 
-  // Step 1: Ensure the add-sources dialog is open
+  // Step 1: Ensure the add-sources dialog is open so the "Upload files"
+  // control is visible for the user to click.
+  showToast("Opening the add-sources dialog…", "progress");
   const dialog = await ensureAddSourcesDialog();
 
-  // Step 2: Arm the injector with file data and WAIT for confirmation
+  // Step 2: Arm the injector. Once armed it watches for a file input / file
+  // picker call and injects our staged files instead of opening the native
+  // OS picker.
+  showToast("Preparing the file injector…", "progress");
   await armInjector(files);
 
-  // Step 3: Set up result listener BEFORE any injection attempt.
+  // Step 3: Listen for the injector's success/failure before prompting.
+  // The timeout is long because we are waiting on a human to click.
   const resultPromise = new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       window.removeEventListener("message", handler);
-      reject(new Error("Upload timed out — NotebookLM never exposed a file input for interception."));
-    }, 70000);
+      reject(
+        new Error(
+          "Timed out waiting for the 'Upload files' click — reopen the extension and try again.",
+        ),
+      );
+    }, 180000);
 
     function handler(e) {
       if (e.source !== window) return;
@@ -49,48 +67,54 @@ async function uploadBatch(files) {
     window.addEventListener("message", handler);
   });
 
-  let uploadFinished = false;
-  resultPromise.finally(() => {
-    uploadFinished = true;
-  });
-
-  // Step 4: If NotebookLM already has a hidden file input in the DOM, inject
-  // directly and skip the fragile button path entirely.
-  const injectedWithoutClick = await requestExistingInjection("before-click");
-  if (injectedWithoutClick) {
-    console.log("[Zotero content] Injector found an existing file input before click");
+  // Step 4: If NotebookLM already has a file input in the DOM, inject right
+  // away — no click needed.
+  const injectedNow = await requestExistingInjection("before-prompt");
+  if (injectedNow) {
+    console.log("[Zotero content] Injector found an existing file input");
+    showToast("Injecting files into NotebookLM…", "progress");
     await resultPromise;
     await sleep(3000);
     return;
   }
 
-  // Step 5: Fall back to clicking the visible upload control in the dialog.
-  const uploadBtn = findClickableByText("upload files", dialog) || findClickableByText("upload files");
-  if (!uploadBtn) {
-    throw new Error("Could not find 'Upload files' button");
+  // Step 5: NotebookLM rejects script-synthesized clicks (isTrusted guard),
+  // so ask the user to click "Upload files" themselves. Their trusted click
+  // triggers the file picker, which the armed injector intercepts — the
+  // native OS picker never appears.
+  const uploadBtn =
+    findClickableByText("upload files", dialog) || findClickableByText("upload files");
+  if (uploadBtn) highlightElement(uploadBtn);
+
+  showToast(
+    `Click “Upload files” in NotebookLM to finish importing ${files.length} source${files.length === 1 ? "" : "s"}.`,
+    "action",
+  );
+
+  // Step 6: Wait for the injector to confirm the click was intercepted.
+  try {
+    await resultPromise;
+  } finally {
+    if (uploadBtn) unhighlightElement(uploadBtn);
   }
-
-  console.log("[Zotero content] Clicking 'Upload files' button");
-  clickElement(uploadBtn);
-
-  // Keep the NotebookLM dialog open. Closing it too early can tear down the
-  // Angular uploader before it materializes the real file input.
-  console.log("[Zotero content] Waiting for NotebookLM to expose a file input");
-  void delayedExistingInjection(1000, "after-click", () => uploadFinished);
-  void delayedExistingInjection(5000, "delayed-after-click", () => uploadFinished);
-  void delayedExistingInjection(15000, "long-delayed-after-click", () => uploadFinished);
-
-  // Step 6: Wait for injector to confirm success.
-  await resultPromise;
 
   // Give NotebookLM time to process
   await sleep(3000);
 }
 
-async function delayedExistingInjection(delayMs, reason, isFinished) {
-  await sleep(delayMs);
-  if (isFinished()) return;
-  await requestExistingInjection(reason);
+function highlightElement(el) {
+  el.dataset.zoteroPrevOutline = el.style.outline || "";
+  el.dataset.zoteroPrevBoxShadow = el.style.boxShadow || "";
+  el.style.outline = "3px solid #e8710a";
+  el.style.boxShadow = "0 0 0 4px rgba(232,113,10,0.35)";
+  el.scrollIntoView({ block: "center", inline: "center" });
+}
+
+function unhighlightElement(el) {
+  el.style.outline = el.dataset.zoteroPrevOutline || "";
+  el.style.boxShadow = el.dataset.zoteroPrevBoxShadow || "";
+  delete el.dataset.zoteroPrevOutline;
+  delete el.dataset.zoteroPrevBoxShadow;
 }
 
 async function armInjector(files) {
@@ -245,4 +269,47 @@ function waitForElement(selector, timeoutMs = 3000) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+let toastEl = null;
+let toastTimer = null;
+
+function showToast(message, kind = "progress") {
+  const colors = {
+    progress: "#1a73e8",
+    action: "#e8710a",
+    success: "#188038",
+    error: "#d93025",
+  };
+
+  if (!toastEl) {
+    toastEl = document.createElement("div");
+    toastEl.style.cssText = [
+      "position:fixed",
+      "bottom:20px",
+      "right:20px",
+      "z-index:2147483647",
+      "max-width:340px",
+      "padding:12px 16px",
+      "border-radius:8px",
+      "color:#fff",
+      "font:500 13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",
+      "box-shadow:0 2px 10px rgba(0,0,0,0.25)",
+    ].join(";");
+    (document.body || document.documentElement).appendChild(toastEl);
+  }
+
+  toastEl.style.background = colors[kind] || colors.progress;
+  toastEl.textContent = `Zotero → NotebookLM: ${message}`;
+
+  if (toastTimer) clearTimeout(toastTimer);
+  // progress/action toasts stay until replaced; terminal ones auto-dismiss.
+  if (kind === "success" || kind === "error") {
+    toastTimer = setTimeout(() => {
+      if (toastEl) {
+        toastEl.remove();
+        toastEl = null;
+      }
+    }, kind === "error" ? 12000 : 6000);
+  }
 }
